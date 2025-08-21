@@ -1,0 +1,514 @@
+---
+description: React Rules
+alwaysApply: true
+globs: ["**/*.tsx", "**/*.jsx", "**/*.ts", "**/*.js"]
+---
+
+# React Rules
+
+## Component Structure
+
+**Functional Components**: ALWAYS use function declarations (not arrow functions)
+**Component Export**: Start with "export default function" and then component name
+**Props Interface**: Define props interface for TypeScript components
+**Props Destructuring**: ALWAYS destructure props in React components
+**Component Naming**: Use PascalCase for component names
+**JSX Organization**: Break long JSX fragments into smaller chunks using const variables for better readability and easier CSS tweaking
+**Base Components**: Always create base components from UI library components (e.g., BaseButton, BaseInput) for consistency and easier theming
+**File Organization**: Use CamelCase for component folders, kebab-case for internal files, consolidate types and constants in types.ts
+**Component Structure**: Use CamelCase files for simple components, CamelCase folders for complex components with multiple files
+
+````typescript
+// ✅ Good
+interface UserCardProps {
+  user: User;
+  onEdit?: (id: string) => void;
+}
+
+export default function UserCard({ user, onEdit }: UserCardProps) {
+  const userInfo = (
+    <div className="user-info">
+      <h3>{user.name}</h3>
+      <p>{user.email}</p>
+    </div>
+  );
+
+  const editButton = onEdit && (
+    <button onClick={() => onEdit(user.id)}>Edit</button>
+  );
+
+  return (
+    <div className="user-card">
+      {userInfo}
+      {editButton}
+    </div>
+  );
+}
+
+// ❌ Bad
+const userCard = (props) => {
+  return (
+    <div>
+      <h3>{props.user.name}</h3>
+      <p>{props.user.email}</p>
+    </div>
+  );
+};
+
+// ❌ Bad - not destructuring props
+export default function UserCard(props: UserCardProps) {
+  return (
+    <div className="user-card">
+      <h3>{props.user.name}</h3>
+      <p>{props.user.email}</p>
+      {props.onEdit && (
+        <button onClick={() => props.onEdit(props.user.id)}>Edit</button>
+      )}
+    </div>
+  );
+}
+
+// ❌ Bad - arrow function
+const UserCard = ({ user, onEdit }) => {
+  return (
+    <div className="user-card">
+      <h3>{user.name}</h3>
+      <p>{user.email}</p>
+    </div>
+  );
+};
+
+// ❌ Bad - everything in return statement
+export default function UserProfile({ user }) {
+  return (
+    <div className="user-profile">
+      <div className="user-header">
+        <h1>{user.name}</h1>
+        <p>{user.title}</p>
+      </div>
+      <div className="user-stats">
+        <StatCard label="Posts" value={user.postCount} />
+        <StatCard label="Followers" value={user.followerCount} />
+        <StatCard label="Following" value={user.followingCount} />
+      </div>
+      <UserActions user={user} />
+    </div>
+  );
+}
+
+// ✅ Good - Base components
+export default function BaseButton({ children, variant = 'primary', ...props }) {
+  return (
+    <Button
+      className={`base-button base-button--${variant}`}
+      {...props}
+    >
+      {children}
+    </Button>
+  );
+}
+
+// ✅ Good - Use base components in pages
+export default function UserPage() {
+  return (
+    <div>
+      <BaseButton variant="primary">Save User</BaseButton>
+      <BaseButton variant="secondary">Cancel</BaseButton>
+    </div>
+  );
+}
+
+// ❌ Bad - Direct library usage
+export default function UserPage() {
+  return (
+    <div>
+      <Button type="primary" className="custom-save-btn">Save User</Button>
+      <Button type="default" className="custom-cancel-btn">Cancel</Button>
+    </div>
+  );
+}
+```
+
+## File Organization
+
+**Component Folders**: Use CamelCase (MultiDateCalendar, UserProfile)
+**Internal Files**: Use kebab-case (index.tsx, types.ts, schemas.ts)
+**Types & Constants**: Consolidate in types.ts to reduce file count
+
+```typescript
+// ✅ Good - Simple components (single file)
+components/
+  Button.tsx       // Simple component
+  Input.tsx        // Simple component
+  Modal.tsx        // Simple component
+
+// ✅ Good - Complex components (multiple files)
+components/
+  MultiDateCalendar/
+    index.tsx      // Main component + re-exports
+    types.ts       // Types, interfaces, constants
+    schemas.ts     // Zod schemas
+    utils.ts       // Supporting logic
+    hooks.ts       // Custom hooks (if applicable)
+    api.ts         // API calls (if applicable)
+    styles.css     // Component-specific styles
+    CalendarHeader.tsx  // Internal sub-component
+    CalendarGrid.tsx    // Internal sub-component
+
+// ✅ Good - index.tsx re-exports
+export { default } from './MultiDateCalendar';
+export * from './types';
+export * from './hooks';
+export * from './constants';
+
+// ✅ Good - Clean imports
+import MultiDateCalendar, { MultiDateCalendarProps, CALENDAR_MODES } from '@/components/MultiDateCalendar';
+
+// ❌ Bad - Inconsistent naming
+components/
+  multi-date-calendar/
+    MultiDateCalendar.tsx
+    Types.ts
+    Schemas.ts
+```
+
+## Project Structure
+
+**Root Level**: Single config files, environment-specific .env files, standard entry points
+**Src Organization**: Feature-based domains, shared resources, base components
+**Import Patterns**: Use @ alias for src, relative imports for closely related files
+
+```typescript
+// ✅ Good - Root level structure
+package.json          // Dependencies and scripts
+vite.config.js        // Vite configuration
+vitest.config.js      // Test configuration
+eslint.config.mjs     // ESLint configuration
+.prettierrc.yaml      // Prettier configuration
+tsconfig.json         // TypeScript configuration
+.env.dev              // Development environment
+.env.sit              // SIT environment
+.env.uat              // UAT environment
+.env.prd              // Production environment
+.env.local            // Local overrides
+index.html            // Main entry point
+main.tsx              // React entry point
+App.tsx               // Root component
+
+// ✅ Good - Src structure
+src/
+  user/                // Feature-based organization (singular domains)
+    components/
+    hooks/
+    services/
+    types/
+  product/
+    components/
+    hooks/
+    services/
+    types/
+  order/
+    components/
+    hooks/
+    services/
+    types/
+  shared/              // Cross-domain resources
+    utils/
+    constants/
+    types/
+    hooks/
+    services/
+  components/
+    base/              // Base components from UI library
+      BaseButton/
+      BaseInput/
+      BaseModal/
+
+// ✅ Good - Import patterns
+import { UserCard } from '@/components/user/UserCard';
+import { BaseButton } from '@/components/base/BaseButton';
+import { formatDate } from '@/shared/utils/date';
+import { userTypes } from './types';  // Relative for closely related files
+
+## Hooks Usage
+
+**Custom Hooks**: Start with "use" prefix
+**Hook Dependencies**: Always include all dependencies in useEffect
+**useEffect Cleanup**: Always provide cleanup function for subscriptions, timers, event listeners, and async operations
+**State Management**: Use appropriate hooks for state type
+
+```typescript
+// ✅ Good
+const useUserData = (userId: string) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchUser = async () => {
+      try {
+        const data = await api.getUser(userId);
+        if (isMounted) {
+          setUser(data);
+        }
+      } catch (error) {
+        if (isMounted) {
+          console.error("Failed to fetch user:", error);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchUser();
+
+    return () => {
+      isMounted = false; // Cleanup prevents setting state on unmounted component
+    };
+  }, [userId]);
+
+  return { user, loading };
+};
+
+// ❌ Bad
+const useUserData = (userId) => {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    // Missing userId dependency
+    fetchUser();
+  }, []); // Empty dependency array
+};
+
+// ❌ Bad - no cleanup function
+useEffect(() => {
+  const subscription = api.subscribe(userId);
+  // Missing cleanup - will cause memory leak
+}, [userId]);
+````
+
+## Event Handling
+
+**Event Handlers**: Use descriptive names and proper typing
+**Event Handler Functions**: ALWAYS use regular functions (not arrow functions) for event handlers
+**Event Handler Naming**: Use "handle" + Action + Context pattern (e.g., handleUserDelete, handleEmailChange)
+**Event Parameters**: Keep event parameters even if unused for consistency and future-proofing
+**State Management**: Avoid passing state setters around - use callbacks, context, or custom hooks instead
+**Inline Functions**: Avoid inline functions in render for performance
+**Event Types**: Use proper React event types
+
+````typescript
+// ✅ Good
+function handleFormSubmit(event: React.FormEvent<HTMLFormElement>) {
+  event.preventDefault();
+  onSubmit(formData);
+}
+
+function handleEmailChange(event: React.ChangeEvent<HTMLInputElement>) {
+  setFormData((prev) => ({
+    ...prev,
+    [event.target.name]: event.target.value,
+  }));
+}
+
+function handleUserDelete(userId: string) {
+  // Delete user logic
+}
+
+function handleModalClose(event: React.MouseEvent<HTMLButtonElement>) {
+  // Close modal logic
+  setIsModalOpen(false);
+}
+
+return (
+  <form onSubmit={handleSubmit}>
+    <input name="email" onChange={handleInputChange} value={formData.email} />
+  </form>
+);
+
+// ❌ Bad
+return (
+  <form
+    onSubmit={(e) => {
+      e.preventDefault();
+      onSubmit(formData);
+    }}
+  >
+    <input onChange={(e) => setEmail(e.target.value)} />
+  </form>
+);
+
+// ❌ Bad - arrow function event handlers
+const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  event.preventDefault();
+  onSubmit(formData);
+};
+
+const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  setFormData((prev) => ({
+    ...prev,
+    [event.target.name]: event.target.value,
+  }));
+};
+
+// ❌ Bad - generic event handler names
+function handleClick() {}
+function handleChange() {}
+function handleEvent() {}
+
+// ❌ Bad - omitting event parameters
+function handleModalClose() {
+  setIsModalOpen(false);
+}
+
+// ❌ Bad - passing state setters around
+function Parent() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  return (
+    <Child
+      user={user}
+      setUser={setUser}
+      loading={loading}
+      setLoading={setLoading}
+    />
+  );
+}
+
+// ✅ Good - use callbacks instead
+function Parent() {
+  const [user, setUser] = useState(null);
+
+  const handleUserUpdate = (newUser) => {
+    setUser(newUser);
+  };
+
+  return <Child user={user} onUserUpdate={handleUserUpdate} />;
+}
+
+## Conditional Rendering
+
+**Use Logical AND**: For simple conditions
+**Use Ternary**: For if/else conditions
+**Use Early Returns**: For complex conditions
+
+```typescript
+// ✅ Good
+const UserProfile = ({ user, isLoading }) => {
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+
+  if (!user) {
+    return <NotFound />;
+  }
+
+  return (
+    <div>
+      <h2>{user.name}</h2>
+      {user.avatar && <img src={user.avatar} alt={user.name} />}
+      {user.bio ? <p>{user.bio}</p> : <p>No bio available</p>}
+    </div>
+  );
+};
+
+// ❌ Bad
+const UserProfile = ({ user, isLoading }) => {
+  return (
+    <div>
+      {isLoading ? (
+        <LoadingSpinner />
+      ) : !user ? (
+        <NotFound />
+      ) : (
+        <div>
+          <h2>{user.name}</h2>
+          {user.avatar && <img src={user.avatar} alt={user.name} />}
+          {user.bio && <p>{user.bio}</p>}
+        </div>
+      )}
+    </div>
+  );
+};
+````
+
+## Performance Optimization
+
+**React.memo**: Use for expensive components
+**useMemo**: Use for expensive calculations
+**useCallback**: Use for function props to prevent re-renders
+
+```typescript
+// ✅ Good
+const ExpensiveComponent = React.memo(({ data, onUpdate }) => {
+  const processedData = useMemo(() => {
+    return data.map((item) => ({
+      ...item,
+      processed: item.value * 2,
+    }));
+  }, [data]);
+
+  const handleClick = useCallback(() => {
+    onUpdate(processedData);
+  }, [onUpdate, processedData]);
+
+  return (
+    <div onClick={handleClick}>
+      {processedData.map((item) => (
+        <div key={item.id}>{item.processed}</div>
+      ))}
+    </div>
+  );
+});
+
+// ❌ Bad
+const ExpensiveComponent = ({ data, onUpdate }) => {
+  const processedData = data.map((item) => ({
+    ...item,
+    processed: item.value * 2,
+  })); // Recalculates on every render
+
+  return (
+    <div onClick={() => onUpdate(processedData)}>
+      {processedData.map((item) => (
+        <div key={item.id}>{item.processed}</div>
+      ))}
+    </div>
+  );
+};
+```
+
+## File Organization
+
+**Component Files**: Use PascalCase with .tsx extension
+**Index Files**: Export components from index files
+**Folder Structure**: Group related components together
+
+```typescript
+// ✅ Good - UserCard.tsx
+interface UserCardProps {
+  user: User;
+}
+
+export default function UserCard({ user }: UserCardProps) {
+  // Component implementation
+}
+
+// ✅ Good - index.ts
+export { UserCard } from "./UserCard";
+export { UserList } from "./UserList";
+export { UserForm } from "./UserForm";
+
+// ❌ Bad - userCard.jsx
+const userCard = ({ user }) => {
+  // Component implementation
+};
+```
+
+## Project Setup
+
+**Vite Projects**: If `index.html` (application main entry point) is missing in project root, ALWAYS ask if you want to generate one.
