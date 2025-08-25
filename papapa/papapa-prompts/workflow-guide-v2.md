@@ -60,20 +60,25 @@ A structured approach to software development using LLMs across 5 distinct phase
 
 ## Key Principles
 
-- **Document Accumulation:** Each phase includes ALL previous generated documents
-- **Document Accumulation:** Include both phase prompts AND generated docs
-- **Document Accumulation:** This prevents LLM context loss and hallucination
-- **Phase Progression:** Wait for explicit approval before moving to next phase
-- **Phase Progression:** Can return to previous phases if major changes needed
-- **Phase Progression:** Each phase builds on accumulated context
-- **Phase Progression:** Use "We're in iteration X, phase X" to indicate iteration cycles
-- **Phase Progression:** Each iteration = scoped feature that goes through phases 1-5
-- **Implementation Control:** Execute one task at a time during Phase 4
-- **Implementation Control:** Stop after each task for user review (bullet point numbers are pause points)
-- **Implementation Control:** Document all changes in `04-changes-log.md`
-- **Implementation Control:** Update requirements/design docs in Phase 5, not during implementation
-- **Implementation Control:** Immediately stop and suggest resolution if design flaws discovered
-- **Implementation Control:** Fix all errors (especially TypeScript) before proceeding to next subtask
+### Document Accumulation
+- Each phase includes ALL previous generated documents
+- Include both phase prompts AND generated docs
+- This prevents LLM context loss and hallucination
+
+### Phase Progression
+- Wait for explicit approval before moving to next phase
+- Can return to previous phases if major changes needed
+- Each phase builds on accumulated context
+- Use "We're in iteration X, phase X" to indicate iteration cycles
+- Each iteration = scoped feature that goes through phases 1-5
+
+### Implementation Control
+- Execute one task at a time during Phase 4
+- Stop after each task for user review (bullet point numbers are pause points)
+- Document all changes in `04-changes-log.md`
+- Update requirements/design docs in Phase 5, not during implementation
+- Immediately stop and suggest resolution if design flaws discovered
+- Fix all errors (especially TypeScript) before proceeding to next subtask
 
 ## File Structure
 
@@ -86,7 +91,8 @@ specs/{feature_name}/
 └── Updated main docs (Phase 5 output)
 ```
 
-- **Note:** Use kebab-case for feature names (e.g., `excel-processor`, `user-authentication`)
+### File Management Guidelines
+- **Use kebab-case for feature names** (e.g., `excel-processor`, `user-authentication`)
 - **Keep:** `01-requirements.md` and `02-design.md` (permanent documentation)
 - **Scrap:** `03-implementation-plan.md`, `04-changes-log.md` (temporary working files)
 - **Test Cases:** Generate test documentation in Phase 2 (markdown), add JS comments during Phase 4 implementation
@@ -94,8 +100,9 @@ specs/{feature_name}/
 - **Note:** Test documentation workflow is "to be confirmed" - not intensively verified
 - **Note:** Numbered tasks/subtasks require explicit approval - numbers = pause points
 
-**Example - Unnumbered subtasks (execute as 1 unit):**
+## Task Execution Examples
 
+### Unnumbered Subtasks (Execute as 1 Unit)
 ```
 - [ ] **11.2** Test mutation hooks
   - Test user creation with useCreateUser hook
@@ -104,8 +111,7 @@ specs/{feature_name}/
   - Check cache invalidation strategies
 ```
 
-**Example - Numbered subtasks (execute as 4 units with approval between each):**
-
+### Numbered Subtasks (Execute as 4 Units with Approval Between Each)
 ```
 - [ ] **11.2** Test mutation hooks
   - [ ] 11.2.1 Test user creation with useCreateUser hook
@@ -116,9 +122,10 @@ specs/{feature_name}/
 
 ## Why Include Generated Docs?
 
-- **Critical for workflow success:** Including generated documentation prevents the LLM from:
+**Critical for workflow success:** Including generated documentation prevents the LLM from:
 - Losing context between phases
 - Starting fresh and hallucinating solutions
 - Forgetting previous decisions and requirements
 - Repeating work already completed
-- **Always include:** Phase prompt + All generated docs from previous phases
+
+**Always include:** Phase prompt + All generated docs from previous phases
