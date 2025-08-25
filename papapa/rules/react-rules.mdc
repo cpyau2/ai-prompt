@@ -151,7 +151,7 @@ components/
     utils.ts       // Supporting logic
     hooks.ts       // Custom hooks (if applicable)
     api.ts         // API calls (if applicable)
-    styles.css     // Component-specific styles
+    styles.module.css     // Component-specific styles (CSS Modules, co-located)
     CalendarHeader.tsx  // Internal sub-component
     CalendarGrid.tsx    // Internal sub-component
 
@@ -171,6 +171,26 @@ components/
     Types.ts
     Schemas.ts
 ```
+
+## Styling
+
+- Styles strategy: Use CSS Modules co-located with the component. Avoid inline styles for layout, spacing, typography, and colors.
+- File placement:
+  - Simple components: `ComponentName.tsx` + `ComponentName.module.css`
+  - Complex components (folder): `ComponentName/index.tsx` + `ComponentName/styles.module.css`
+- Usage:
+  - Import with `import styles from './ComponentName.module.css'` (or `./styles.module.css`) and apply via `className={styles.root}`.
+  - For dynamic per-instance values, set CSS variables inline and consume them in the module.
+
+```tsx
+<div className={styles.root} style={{ ["--card-width" as any]: `${width}px` }} />
+```
+
+```css
+.root { width: var(--card-width); }
+```
+
+- Ant Design v5: Prefer AntD props/tokens (e.g., `Space`, theme tokens) before custom CSS. If overriding AntD classes, scope via `:global(.ant-*)` inside the module when necessary.
 
 ## Project Structure
 
@@ -223,12 +243,89 @@ src/
       BaseButton/
       BaseInput/
       BaseModal/
+    layout/            // Layout and dashboard components
+      Header/
+      Sidebar/
+      MainLayout/
+      DashboardLayout/
+      TopPane/
+      MenuPane/
+      Footer/
 
 // ✅ Good - Import patterns
 import { UserCard } from '@/components/user/UserCard';
 import { BaseButton } from '@/components/base/BaseButton';
 import { formatDate } from '@/shared/utils/date';
 import { userTypes } from './types';  // Relative for closely related files
+
+## Dashboard Architecture
+
+**Standard React App Flow**: `index.html` → `main.tsx` → `App.tsx`
+
+**Dashboard App Structure**:
+- **`App.tsx`**: Global providers (theming, auth, router, error boundaries, app-level states)
+- **`DashboardLayout`**: Dashboard-specific logic and layout (sidebar state, navigation, content)
+
+```typescript
+// ✅ Good - App.tsx (Global concerns only)
+export default function App() {
+  return (
+    <AuthProvider>
+      <ThemeProvider>
+        <Router>
+          <ErrorBoundary>
+            <DashboardLayout />
+          </ErrorBoundary>
+        </Router>
+      </ThemeProvider>
+    </AuthProvider>
+  );
+}
+
+// ✅ Good - DashboardLayout (Dashboard-specific logic)
+export default function DashboardLayout() {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [currentRoute, setCurrentRoute] = useState('/dashboard');
+
+  // Dashboard-specific logic here
+  // - Sidebar state management
+  // - Route handling
+  // - User permissions
+  // - Dashboard data fetching
+
+  return (
+    <>
+      <TopPane onMenuToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
+      <div className="dashboard-layout">
+        <MenuPane collapsed={sidebarCollapsed} currentRoute={currentRoute} />
+        <ContentPane route={currentRoute} />
+      </div>
+    </>
+  );
+}
+
+// ❌ Bad - Mixing global and dashboard logic in App.tsx
+export default function App() {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [currentRoute, setCurrentRoute] = useState('/dashboard');
+
+  return (
+    <AuthProvider>
+      <ThemeProvider>
+        <Router>
+          <ErrorBoundary>
+            <TopPane onMenuToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
+            <div className="dashboard-layout">
+              <MenuPane collapsed={sidebarCollapsed} currentRoute={currentRoute} />
+              <ContentPane route={currentRoute} />
+            </div>
+          </ErrorBoundary>
+        </Router>
+      </ThemeProvider>
+    </AuthProvider>
+  );
+}
+```
 
 ## Hooks Usage
 

@@ -1,0 +1,45 @@
+---
+description: Fastity Coding Conventions
+alwaysApply: true
+globs: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]
+---
+
+## Fastity Coding Conventions
+
+**Baseline**: Version 5.4.0
+**Avoid deprecated syntax**
+
+### Handler Functions
+
+**Prefer arrow functions** inside route handlers for consistency and modern syntax.
+
+```typescript
+// ✅ Good
+fastify.post("/users", {
+  handler: async (request, reply) => {
+    const user = await createUser(request.body);
+    return reply.send(user);
+  },
+});
+
+// ❌ Bad
+fastify.post("/users", {
+  handler: async function (request, reply) {
+    const user = await createUser(request.body);
+    return reply.send(user);
+  },
+});
+```
+
+### HTTP Status Codes
+
+**Standard Response Format**: All successful responses include `data` field, errors use `{ "error": <code>, "message": "<reason>" }`
+
+**GET endpoints**: `200 OK` for success, `404 Not Found` for missing resources
+**POST endpoints**: `201 Created` for success, `400 Bad Request` for validation errors, `409 Conflict` for record already exists
+**PUT endpoints**: `200 OK` for success, `400` for validation errors, `404` for missing resources
+**DELETE endpoints**: `204 No Content` for success, `400` for invalid params, `404` for missing resources
+
+**400 Bad Request**: Used for ALL validation errors across all endpoints (invalid data types, missing required fields, field length violations, invalid formats, etc.)
+**404 Not Found**: Return when resource doesn't exist
+**500 Internal Server Error**: Return for unexpected server failures

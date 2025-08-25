@@ -20,7 +20,7 @@ schemas.ts; // Zod schemas
 utils.ts; // Helper functions
 hooks.ts; // Custom hooks (if applicable)
 api.ts; // API calls (if applicable)
-styles.css; // Component-specific styles
+styles.module.css; // Component-specific styles (CSS Modules, co-located)
 ```
 
 ## Component Internal Structure
@@ -40,7 +40,20 @@ import { getDefaultFormValues } from "./utils";
 // 2. Constants (if any)
 const DEFAULT_TIMEOUT = 5000;
 
-// 3. Helper functions (pure/stateless)
+// 3. Interfaces and Types (props interfaces, local types)
+interface UserFormProps {
+  userId: string;
+  onSubmit?: () => void;
+  onCancel?: () => void;
+}
+
+interface FormData {
+  name: string;
+  email: string;
+  role: "user" | "admin";
+}
+
+// 4. Helper functions (pure/stateless)
 // Pure functions: same input → same output, no side effects, no external dependencies
 // Stateless functions: no useState, no persistent variables, no component state
 function getDefaultFormValues(): FormData {
@@ -51,13 +64,13 @@ function getDefaultFormValues(): FormData {
   };
 }
 
-// 4. Component
+// 5. Component
 export default function UserForm({ userId, onSubmit }: UserFormProps) {
-  // 5. State variables
+  // 6. State variables
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 6. Hooks (grouped by purpose)
+  // 7. Hooks (grouped by purpose)
   const { t } = useTranslation();
   const {
     register,
@@ -80,7 +93,7 @@ export default function UserForm({ userId, onSubmit }: UserFormProps) {
     },
   });
 
-  // 7. Event handlers (use regular functions, not arrow functions)
+  // 8. Event handlers (use regular functions, not arrow functions)
   function handleFormSubmit(data: FormData) {
     setIsSubmitting(true);
     setError(null);
@@ -98,14 +111,14 @@ export default function UserForm({ userId, onSubmit }: UserFormProps) {
     // Cancel logic
   }
 
-  // 8. Side effects
+  // 9. Side effects
   useEffect(() => {
     if (user) {
       // Update form with user data
     }
   }, [user]);
 
-  // 9. Early returns for loading/error states
+  // 10. Early returns for loading/error states
   if (isLoading) {
     return <LoadingSpinner />;
   }
@@ -114,7 +127,7 @@ export default function UserForm({ userId, onSubmit }: UserFormProps) {
     return <ErrorMessage message={error} />;
   }
 
-  // 10. JSX fragments (break into smaller chunks)
+  // 11. JSX fragments (break into smaller chunks)
   const formHeader = (
     <div className="form-header">
       <h2>{t("user.edit.title")}</h2>
@@ -126,6 +139,7 @@ export default function UserForm({ userId, onSubmit }: UserFormProps) {
     <div className="form-fields">
       <input {...register("name")} placeholder={t("user.name")} />
       <input {...register("email")} placeholder={t("user.email")} />
+      <input {...register("role")} placeholder={t("user.role")} />
       <select {...register("role")}>
         <option value="user">{t("user.role.user")}</option>
         <option value="admin">{t("user.role.admin")}</option>
@@ -144,7 +158,7 @@ export default function UserForm({ userId, onSubmit }: UserFormProps) {
     </div>
   );
 
-  // 11. Main return (keep it small)
+  // 12. Main return (keep it small)
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="user-form">
       {formHeader}
@@ -339,9 +353,3 @@ export interface FormData {
   role: "user" | "admin";
 }
 ```
-
-description:
-globs:
-alwaysApply: false
-
----

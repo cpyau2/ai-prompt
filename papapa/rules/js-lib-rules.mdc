@@ -1,14 +1,22 @@
 ---
-description: JavaScript/TypeScript Library Conventions
+description: Javascript/Typescript Library Conventions
 alwaysApply: true
-globs: ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"]
+globs: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]
 ---
 
 # JavaScript/TypeScript Library Conventions
 
-## Ant Design (v5)
+## Node.JS
 
-**Baseline**: Version 5
+**Baseline**: Version 22.x.
+
+- When importing node.js APIs, specify prefix "node:".
+  - Correct: import path from "node:path";
+  - Wrong: import path from "path";
+
+## Ant Design (v5.26.7)
+
+**Baseline**: Version 5.26.7
 **Avoid deprecated syntax**
 
 ### Component Usage
@@ -100,4 +108,5 @@ const minioClient = new Client({
   accessKey: "your-access-key",
   secretKey: "your-secret-key",
 });
+``;
 ```
